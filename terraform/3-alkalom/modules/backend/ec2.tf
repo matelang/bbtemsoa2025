@@ -13,6 +13,10 @@ resource "aws_instance" "api" {
 
   vpc_security_group_ids = [aws_security_group.api.id]
 
+  user_data = templatefile("${path.module}/userdata.sh.tpl", {
+    port = 80,
+  })
+
   tags = {
     Name = each.value,
   }
