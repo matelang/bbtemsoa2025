@@ -1,9 +1,6 @@
-provider "aws" {
-  profile = "bbte2025"
-  region  = "eu-central-1"
-}
-
 resource "aws_instance" "api" {
+  count = 1
+
   ami           = "ami-0ecf75a98fe8519d7"
   instance_type = var.instance_type
   subnet_id     = aws_subnet.bbte[keys(local.derived_subnet_cidrs).0].id
@@ -14,9 +11,8 @@ resource "aws_instance" "api" {
 
   tags = merge(
     {
-      Name = join("-", [var.project_name, "api"])
+      Name = join("-", [var.project_name, "api", count.index]),
     }, local.default_tags)
-
 }
 
 resource "aws_iam_instance_profile" "api" {

@@ -41,6 +41,10 @@ resource "aws_route_table" "public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.bbte.id
   }
+  tags = merge(
+    {
+      Name = join("-", [var.project_name, "public"]),
+    }, local.default_tags)
 }
 
 resource "aws_route_table_association" "bbtepublic" {
