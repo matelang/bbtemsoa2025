@@ -10,7 +10,6 @@ resource "aws_vpc" "bbte" {
 
   enable_dns_hostnames = true
   enable_dns_support   = true
-
 }
 
 locals {
@@ -23,9 +22,10 @@ locals {
 resource "aws_subnet" "bbte" {
   for_each = local.derived_subnet_cidrs
 
-  vpc_id               = aws_vpc.bbte.id
-  cidr_block           = each.value
-  availability_zone_id = each.key
+  vpc_id                  = aws_vpc.bbte.id
+  cidr_block              = each.value
+  availability_zone_id    = each.key
+  map_public_ip_on_launch = true
 
   tags = merge(
     {
@@ -34,3 +34,30 @@ resource "aws_subnet" "bbte" {
 
 }
 
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.bbte.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.bbte.id
+  }
+}
+
+resource "aws_route_table_association" "bbtepublic" {
+  for_each = aws_subnet.bbte
+
+  route_table_id = aws_route_table.public.id
+  subnet_id      = each.value.id
+}
+
+resource "aws_internet_gateway" "bbte" {
+  tags = merge(
+    {
+      Name = var.project_name
+    }, local.default_tags)
+}
+
+resource "aws_internet_gateway_attachment" "bbte" {
+  internet_gateway_id = aws_internet_gateway.bbte.id
+  vpc_id              = aws_vpc.bbte.id
+}
